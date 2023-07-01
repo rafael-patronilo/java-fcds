@@ -22,7 +22,7 @@ public abstract class QueueTest {
     protected abstract boolean isBounded();
 
     private <E> Thread createEnqueuer(Queue<E> queue, E value){
-        return new Thread(()->queue.enqueue(value));
+        return new Thread(()->assertNotThrows(()->queue.enqueue(value)));
     }
 
     private <E> Thread createEnqueuer(Queue<E> queue, E value, AtomicInteger blockCounter){
@@ -30,13 +30,13 @@ public abstract class QueueTest {
             try {
                 queue.tryEnqueue(value);
             } catch (BusyStructureException e){
-                queue.enqueue(value); //wait for it
+                assertNotThrows(()->queue.enqueue(value)); //wait for it
                 blockCounter.incrementAndGet();
             }
         });
     }
     private <E> Thread createDequeuer(Queue<E> queue, Consumer<E> callback){
-        return new Thread(()->callback.accept(queue.dequeue()));
+        return new Thread(()->callback.accept(assertNotThrows(queue::dequeue)));
     }
 
     private <E> Thread createDequeuer(Queue<E> queue, Consumer<E> callback, AtomicInteger blockCounter){
@@ -45,7 +45,7 @@ public abstract class QueueTest {
             try {
                 result = queue.tryDequeue();
             } catch (BusyStructureException e){
-                result = queue.dequeue(); //wait for it
+                result = assertNotThrows(queue::dequeue); //wait for it
                 blockCounter.incrementAndGet();
             }
             callback.accept(result);
@@ -82,8 +82,8 @@ public abstract class QueueTest {
         }
         System.out.println(
                 "Total number of blocks: " + (enqueueBlocks + dequeueBlocks) + "\n" +
-                        "        Enqueue blocks: " + enqueueBlocks + "\n" +
-                        "        Dequeue blocks: " + dequeueBlocks + "\n"
+                "        Enqueue blocks: " + enqueueBlocks + "\n" +
+                "        Dequeue blocks: " + dequeueBlocks + "\n"
         );
     }
 

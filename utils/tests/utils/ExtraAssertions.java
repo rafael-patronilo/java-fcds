@@ -1,7 +1,11 @@
 package tests.utils;
+import org.junit.function.ThrowingRunnable;
+import org.junit.jupiter.api.function.ThrowingSupplier;
+
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import static org.junit.Assert.*;
 
@@ -25,6 +29,34 @@ public class ExtraAssertions {
                             ()-> clone.stream().limit(count).mapToObj(x->(CharSequence)Integer.toString(x)).iterator()
                     ) + "}"
             );
+        }
+    }
+
+    public static void assertNotThrows(ThrowingRunnable runnable){
+        Throwable thrown = null;
+        try{
+            runnable.run();
+        } catch (Throwable e){
+            thrown = e;
+            throw new RuntimeException(e);
+        } finally {
+            if(thrown != null){
+                fail("Operation threw: " + thrown.toString());
+            }
+        }
+    }
+
+    public static <E> E assertNotThrows(ThrowingSupplier<E> runnable){
+        Throwable thrown = null;
+        try{
+            return runnable.get();
+        } catch (Throwable e){
+            thrown = e;
+            throw new RuntimeException(e);
+        } finally {
+            if(thrown != null){
+                fail("Operation threw: " + thrown.toString());
+            }
         }
     }
 }

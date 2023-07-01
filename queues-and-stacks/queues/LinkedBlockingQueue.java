@@ -1,22 +1,22 @@
 package queues;
 
+import linkedLists.LinkedListNode;
 import utils.BusyStructureException;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class BlockingBoundedQueue<E> implements Queue<E> {
-    private final E[] array;
-    private volatile int head;
-    private volatile int tail;
+public class LinkedBlockingQueue<E> implements Queue<E> {
+    private LinkedListNode<E> head;
+    private LinkedListNode<E> tail;
     private final AtomicInteger permits;
+    private final int capacity;
     private final Object enqLock = new Object();
     private final Object deqLock = new Object();
 
-    @SuppressWarnings("unchecked")
-    public BlockingBoundedQueue(int capacity){
-        array = (E[])new Object[capacity];
-        head = 0;
-        tail = 0;
+    public LinkedBlockingQueue(int capacity){
+        this.capacity = capacity;
+        head = new LinkedListNode<>(null);
+        tail = head;
         permits = new AtomicInteger(capacity);
     }
 
@@ -28,10 +28,11 @@ public class BlockingBoundedQueue<E> implements Queue<E> {
                     enqLock.wait();
                 } catch (InterruptedException ignored) {}
             }
-            array[(tail++) % array.length] = item;
+            LinkedListNode<E> node = new LinkedListNode<>(item);
+            tail.next = node;
+            tail = node;
             permits.decrementAndGet();
         }
-
         synchronized (deqLock){
             deqLock.notifyAll();
         }
@@ -41,12 +42,14 @@ public class BlockingBoundedQueue<E> implements Queue<E> {
     public E dequeue() {
         E value;
         synchronized (deqLock){
-            while(permits.get() == array.length){
+            while(permits.get() == capacity){
                 try {
                     deqLock.wait();
                 } catch (InterruptedException ignored) {}
             }
-            value = array[(head++) % array.length];
+            value = head.next.value;
+            head = head.next;
+            head.value = null;
             permits.incrementAndGet();
         }
         synchronized (enqLock){
@@ -61,7 +64,9 @@ public class BlockingBoundedQueue<E> implements Queue<E> {
             if(permits.get() == 0){
                 throw new BusyStructureException();
             }
-            array[(tail++) % array.length] = item;
+            LinkedListNode<E> node = new LinkedListNode<>(item);
+            tail.next = node;
+            tail = node;
             permits.decrementAndGet();
         }
         synchronized (deqLock){
@@ -73,10 +78,12 @@ public class BlockingBoundedQueue<E> implements Queue<E> {
     public E tryDequeue() throws BusyStructureException{
         E value;
         synchronized (deqLock){
-            if(permits.get() == array.length){
+            if(permits.get() == capacity){
                 throw new BusyStructureException();
             }
-            value = array[(head++) % array.length];
+            value = head.next.value;
+            head = head.next;
+            head.value = null;
             permits.incrementAndGet();
         }
         synchronized (enqLock){

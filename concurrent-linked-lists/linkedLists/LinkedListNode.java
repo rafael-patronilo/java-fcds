@@ -3,13 +3,13 @@ package linkedLists;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-class LinkedListNode<E> {
+public class LinkedListNode<E> {
 
-    Lock lock = new ReentrantLock();
-    E value;
-    LinkedListNode<E> next;
+    public Lock lock = new ReentrantLock();
+    public E value;
+    public LinkedListNode<E> next;
 
-    boolean isRemoved;
+    public boolean isRemoved;
 
     public LinkedListNode(E value){
         this.value = value;
