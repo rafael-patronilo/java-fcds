@@ -4,9 +4,9 @@ import java.util.concurrent.atomic.AtomicMarkableReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-class LockFreeNode<E> {
-    E value;
-    AtomicMarkableReference<LockFreeNode<E>> next;
+public class LockFreeNode<E> {
+    public E value;
+    public AtomicMarkableReference<LockFreeNode<E>> next;
 
     //boolean isRemoved;
 
